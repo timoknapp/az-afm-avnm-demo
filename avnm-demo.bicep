@@ -106,3 +106,122 @@ resource virtualNetworkGateway 'Microsoft.Network/virtualNetworkGateways@2020-11
     enableBgp: false
   }
 }
+
+resource virtualNetworkManager 'Microsoft.Network/networkManagers@2022-05-01' = {
+  name: 'myAVNM'
+  location: firstLocation
+  properties: {
+    description: 'string'
+    networkManagerScopeAccesses: [
+      'Connectivity',
+      'SecurityAdmin'
+    ]
+    networkManagerScopes: {
+      subscriptions: [
+        subscription().subscriptionId
+      ]
+    }
+  }
+}
+
+resource networkGroup 'Microsoft.Network/networkManagers/networkGroups@2022-05-01' = {
+  name: 'myNetworkGroupB'
+  parent: virtualNetworkManager
+  properties: {
+    description: 'This network group contains virtual networks in the East US Azure region.'
+  }
+}
+
+resource staticNetworkGroupMemberVNet2 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
+  name: 'VNetAZStaticMember1'
+  parent: networkGroup
+  properties: {
+    resourceId: virtualNetwork2.id
+  }
+}
+
+resource staticNetworkGroupMemberVNet3 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
+  name: 'VNetAZStaticMember2'
+  parent: networkGroup
+  properties: {
+    resourceId: virtualNetwork3.id
+  }
+}
+
+resource hubA 'Microsoft.Network/networkManagers/connectivityConfigurations@2022-05-01' = {
+  name: 'HubA'
+  parent: virtualNetworkManager
+  properties: {
+    appliesToGroups: [
+      {
+        groupConnectivity: 'DirectlyConnected'
+        isGlobal: 'False'
+        networkGroupId: networkGroup.id
+        useHubGateway: 'True'
+      }
+    ]
+    connectivityTopology: 'HubAndSpoke'
+    description: 'This configuration contains a hub virtual network in the West US Azure region.'
+    hubs: [
+      {
+        resourceId: virtualNetwork1.id
+        resourceType: virtualNetwork1.type
+      }
+    ]
+    isGlobal: 'False'
+  }
+}
+
+resource securityAdminConfigurations 'Microsoft.Network/networkManagers/securityAdminConfigurations@2022-05-01' = {
+  name: 'mySecurityConfig'
+  parent: virtualNetworkManager
+  properties: {
+    applyOnNetworkIntentPolicyBasedServices: [
+      'All'
+    ]
+    description: ''
+  }
+}
+
+resource securityAdminRuleCollection 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections@2022-05-01' = {
+  name: 'myRuleCollection'
+  parent: securityAdminConfigurations
+  properties: {
+    appliesToGroups: [
+      {
+        networkGroupId: networkGroup.id
+      }
+    ]
+    description: ''
+  }
+}
+
+resource rule 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections/rules@2022-05-01' = {
+  name: 'DENY_INTERNET'
+  parent: securityAdminRuleCollection
+  kind: 'Custom'
+  properties: {
+    access: 'Deny'
+    description: 'This rule blocks traffic to the internet on HTTP and HTTPS.'
+    destinationPortRanges: [
+      '80','443'
+    ]
+    destinations: [
+      {
+        addressPrefix: ''
+        addressPrefixType: 'IPPrefix'
+      }
+    ]
+    direction: 'Outbound'
+    priority: 1
+    protocol: 'Tcp'
+    sourcePortRanges: [
+    ]
+    sources: [
+      {
+        addressPrefix: ''
+        addressPrefixType: 'IPPrefix'
+      }
+    ]
+  }
+}
