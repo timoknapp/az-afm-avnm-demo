@@ -19,8 +19,10 @@ az group create --name afm-demo-rg --location westeurope
 az deployment group create --resource-group afm-demo-rg --template-file afm-demo.bicep --parameterfile afm-demo-parameters.json
 ```
 
-# Preparation for Azure Virtual Network Manager
+# Deploy Azure Virtual Network Manager
 Source: [Microsoft Learn](https://learn.microsoft.com/en-us/azure/virtual-network-manager/tutorial-create-secured-hub-and-spoke)
+> **Warning**
+> This deployment makes use of static network group members and not dynamic members over Azure Policy like in the linked tutorial.
 
 ## CLI
 
