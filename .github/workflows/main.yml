@@ -10,6 +10,8 @@ jobs:
     name: Build Demos
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
       - name: Run Bicep Build action for Azure Firewall Manager Demo
         uses: Azure/bicep-build-action@v1.0.1
         with:
