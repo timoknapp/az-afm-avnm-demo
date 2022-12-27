@@ -4,6 +4,7 @@ on:
     paths:
       - "afm-demo.bicep"
       - "avmm-demo.bicep"  
+  workflow_dispatch:
 jobs:
   build_and_test:
     name: Build Demos
