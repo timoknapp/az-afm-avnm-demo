@@ -113,8 +113,7 @@ resource virtualNetworkManager 'Microsoft.Network/networkManagers@2022-05-01' = 
   properties: {
     description: 'string'
     networkManagerScopeAccesses: [
-      'Connectivity',
-      'SecurityAdmin'
+      'Connectivity','SecurityAdmin'
     ]
     networkManagerScopes: {
       subscriptions: [
