@@ -1,8 +1,12 @@
-# az-afm-demo
+# Azure Firewall Manager Demo
 
 Simple demo to showcase the Azure Firewall Manager
 
-# Deploy Azure Firewall Manager
+# Architecture Overview
+
+![Architecture Overview](afm-demo-architecture-overview.jpg)
+
+# Deploy
 
 Source: [Microsoft Learn](https://learn.microsoft.com/en-us/azure/firewall-manager/quick-secure-virtual-hub-bicep?tabs=CLI)
 
