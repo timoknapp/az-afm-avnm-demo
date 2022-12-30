@@ -15,8 +15,8 @@ jobs:
       - name: Run Bicep Build action for Azure Firewall Manager Demo
         uses: Azure/bicep-build-action@v1.0.1
         with:
-          bicepFilePath: afm-demo.bicep
+          bicepFilePath: ./afm/afm-demo.bicep
       - name: Run Bicep Build action for Azure Virtual Network Manager Demo
         uses: Azure/bicep-build-action@v1.0.1
         with:
-          bicepFilePath: avnm-demo.bicep
+          bicepFilePath: ./avnm/avnm-demo.bicep
