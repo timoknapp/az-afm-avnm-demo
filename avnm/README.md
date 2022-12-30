@@ -1,8 +1,12 @@
-# az-avnm-demo
+# Azure Virtual Network Manager
 
 Simple demo to showcase the Azure Virtual Network Manager
 
-# Preparation for Azure Virtual Network Manager
+# Architecture Overview
+
+![Architecture Overview](avmm-demo-architecture-overview.jpg)
+
+# Deploy
 
 Source: [Microsoft Learn](https://learn.microsoft.com/en-us/azure/virtual-network-manager/tutorial-create-secured-hub-and-spoke)
 
