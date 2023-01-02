@@ -198,7 +198,7 @@ resource Jump_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       }
     }
     osProfile: {
-      computerName: 'vmjumpeastus001'
+      computerName: 'vmjump'
       adminUsername: adminUsername
       adminPassword: adminPassword
       windowsConfiguration: {
@@ -242,7 +242,7 @@ resource Workload_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       }
     }
     osProfile: {
-      computerName: 'vmworkloadeastus001'
+      computerName: 'vmworkload'
       adminUsername: adminUsername
       adminPassword: adminPassword
       windowsConfiguration: {
