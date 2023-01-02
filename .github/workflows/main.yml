@@ -2,8 +2,8 @@ name: Build
 on:
   push:
     paths:
-      - "afm-demo.bicep"
-      - "avmm-demo.bicep"  
+      - "./afm/main.bicep"
+      - "./avnm/main.bicep"  
   workflow_dispatch:
 jobs:
   build_and_test:
@@ -15,8 +15,8 @@ jobs:
       - name: Run Bicep Build action for Azure Firewall Manager Demo
         uses: Azure/bicep-build-action@v1.0.1
         with:
-          bicepFilePath: ./afm/afm-demo.bicep
+          bicepFilePath: ./afm/main.bicep
       - name: Run Bicep Build action for Azure Virtual Network Manager Demo
         uses: Azure/bicep-build-action@v1.0.1
         with:
-          bicepFilePath: ./avnm/avnm-demo.bicep
+          bicepFilePath: ./avnm/main.bicep
