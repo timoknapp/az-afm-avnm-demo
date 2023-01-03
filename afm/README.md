@@ -23,3 +23,9 @@ az group create --name rg-afm-demo-001 --location westeurope
 ```
 az deployment group create -n az-afm-demo --resource-group rg-afm-demo-001 --template-file main.bicep --parameters adminPassword=AdminPassword123!
 ```
+
+### Cleanup Resource Group
+
+```
+az group delete --name rg-afm-demo-001 --yes
+```
