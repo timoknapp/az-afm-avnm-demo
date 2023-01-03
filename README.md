@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/timoknapp/az-afm-avnm-demo/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/timoknapp/az-afm-avnm-demo/actions/workflows/main.yml)
 
-Simple demo to showcase the Azure Firewall Manager and the Azure Virtual Network Manager
+Simple demo to showcase Azure Firewall Manager and Azure Virtual Network Manager
 
 ## Prerequisites
 
