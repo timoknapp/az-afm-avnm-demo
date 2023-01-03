@@ -2,11 +2,11 @@ param location_hub string = 'westus'
 param location_spoke string = 'eastus'
 
 param networkManagers_avnm_demo_westus_name string = 'avnm-demo-${location_hub}'
-param virtualNetworks_vnet_demo_eastus_001_name string = 'vnet-demo-${location_spoke}-001'
-param virtualNetworks_vnet_demo_eastus_002_name string = 'vnet-demo-${location_spoke}-002'
-param virtualNetworks_vnet_demo_westus_001_name string = 'vnet-demo-${location_hub}-001'
+param virtualNetworks_vnet_demo_westus_001_name string = 'vnet-hub-demo-${location_hub}-001'
 param virtualNetworkGateways_vgw_demo_westus_001_name string = 'vgw-demo-${location_hub}-001'
 param publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name string = 'pip-vgwdemo-${location_hub}-001'
+param virtualNetworks_vnet_demo_eastus_001_name string = 'vnet-spoke-demo-${location_spoke}-001'
+param virtualNetworks_vnet_demo_eastus_002_name string = 'vnet-spoke-demo-${location_spoke}-002'
 
 param subscriptionId string = subscription().id
 
