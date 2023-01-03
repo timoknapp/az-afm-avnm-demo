@@ -15,11 +15,11 @@ Source: [Microsoft Learn](https://learn.microsoft.com/en-us/azure/firewall-manag
 ### Create Resource Group
 
 ```
-az group create --name afm-demo-rg --location westeurope
+az group create --name rg-afm-demo-001 --location westeurope
 ```
 
 ### Deploy
 
 ```
-az deployment group create --resource-group afm-demo-rg --template-file afm-demo.bicep --parameterfile afm-demo-parameters.json
+az deployment group create -n az-afm-demo --resource-group rg-afm-demo-001 --template-file main.bicep --parameters adminPassword=AdminPassword123!
 ```

@@ -1,17 +1,17 @@
-param location_hub string = 'westus'
-param location_spoke string = 'eastus'
+param location_hub string = resourceGroup().location
+param location_spoke string = 'northeurope'
 
-param networkManagers_avnm_demo_westus_name string = 'avnm-demo-${location_hub}'
-param virtualNetworks_vnet_demo_westus_001_name string = 'vnet-hub-demo-${location_hub}-001'
-param virtualNetworkGateways_vgw_demo_westus_001_name string = 'vgw-demo-${location_hub}-001'
-param publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name string = 'pip-vgwdemo-${location_hub}-001'
-param virtualNetworks_vnet_demo_eastus_001_name string = 'vnet-spoke-demo-${location_spoke}-001'
-param virtualNetworks_vnet_demo_eastus_002_name string = 'vnet-spoke-demo-${location_spoke}-002'
+param networkManagers_avnm_demo_name string = 'avnm-demo-${location_hub}'
+param virtualNetworks_vnet_demo_001_name string = 'vnet-hub-demo-${location_hub}-001'
+param virtualNetworkGateways_vgw_demo_001_name string = 'vgw-demo-${location_hub}-001'
+param publicIPAddresses_pip_vgw_demo_001_name string = 'pip-vgwdemo-${location_hub}-001'
+param virtualNetworks_vnet_spoke_demo_001_name string = 'vnet-spoke-demo-${location_spoke}-001'
+param virtualNetworks_vnet_spoke_demo_002_name string = 'vnet-spoke-demo-${location_spoke}-002'
 
 param subscriptionId string = subscription().id
 
-resource networkManagers_avnm_demo_westus_name_resource 'Microsoft.Network/networkManagers@2022-05-01' = {
-  name: networkManagers_avnm_demo_westus_name
+resource networkManagers_avnm_demo_name_resource 'Microsoft.Network/networkManagers@2022-05-01' = {
+  name: networkManagers_avnm_demo_name
   location: location_hub
   properties: {
     networkManagerScopes: {
@@ -27,8 +27,8 @@ resource networkManagers_avnm_demo_westus_name_resource 'Microsoft.Network/netwo
   }
 }
 
-resource publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name_resource 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
-  name: publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name
+resource publicIPAddresses_pip_vgw_demo_001_name_resource 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
+  name: publicIPAddresses_pip_vgw_demo_001_name
   location: location_hub
   sku: {
     name: 'Standard'
@@ -42,16 +42,16 @@ resource publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name_resource 'M
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_ng_eastus_001 'Microsoft.Network/networkManagers/networkGroups@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_resource
-  name: 'ng-eastus-001'
+resource networkManagers_avnm_demo_name_ng_001_resource 'Microsoft.Network/networkManagers/networkGroups@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_resource
+  name: 'ng-${location_spoke}-001'
   properties: {
-    description: 'This network group contains virtual networks in the East US Azure region'
+    description: 'This network group contains virtual networks in the ${location_spoke} Azure region'
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_secconf_demo 'Microsoft.Network/networkManagers/securityAdminConfigurations@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_resource
+resource networkManagers_avnm_demo_name_secconf_demo 'Microsoft.Network/networkManagers/securityAdminConfigurations@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_resource
   name: 'secconf-demo'
   properties: {
     applyOnNetworkIntentPolicyBasedServices: [
@@ -60,8 +60,8 @@ resource networkManagers_avnm_demo_westus_name_secconf_demo 'Microsoft.Network/n
   }
 }
 
-resource virtualNetworkGateways_vgw_demo_westus_001_name_resource 'Microsoft.Network/virtualNetworkGateways@2022-05-01' = {
-  name: virtualNetworkGateways_vgw_demo_westus_001_name
+resource virtualNetworkGateways_vgw_demo_001_name_resource 'Microsoft.Network/virtualNetworkGateways@2022-05-01' = {
+  name: virtualNetworkGateways_vgw_demo_001_name
   location: location_hub
   properties: {
     enablePrivateIpAddress: false
@@ -71,10 +71,10 @@ resource virtualNetworkGateways_vgw_demo_westus_001_name_resource 'Microsoft.Net
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
-            id: publicIPAddresses_pip_vgwdemowestus001_demo_westus_001_name_resource.id
+            id: publicIPAddresses_pip_vgw_demo_001_name_resource.id
           }
           subnet: {
-            id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworks_vnet_demo_westus_001_name, 'GatewaySubnet')
+            id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworks_vnet_demo_001_name, 'GatewaySubnet')
           }
         }
       }
@@ -93,11 +93,10 @@ resource virtualNetworkGateways_vgw_demo_westus_001_name_resource 'Microsoft.Net
     activeActive: false
     bgpSettings: {
       asn: 65515
-      // bgpPeeringAddress: '10.3.1.254'
       peerWeight: 0
       bgpPeeringAddresses: [
         {
-          ipconfigurationId: resourceId('Microsoft.Network/virtualNetworkGateways/ipConfigurations', virtualNetworkGateways_vgw_demo_westus_001_name, 'default')
+          ipconfigurationId: resourceId('Microsoft.Network/virtualNetworkGateways/ipConfigurations', virtualNetworkGateways_vgw_demo_001_name, 'default')
           customBgpIpAddresses: []
         }
       ]
@@ -108,21 +107,21 @@ resource virtualNetworkGateways_vgw_demo_westus_001_name_resource 'Microsoft.Net
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_con_hub_spoke_demo 'Microsoft.Network/networkManagers/connectivityConfigurations@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_resource
+resource networkManagers_avnm_demo_name_con_hub_spoke_demo 'Microsoft.Network/networkManagers/connectivityConfigurations@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_resource
   name: 'con-hub-spoke-demo'
   properties: {
-    description: 'This configuration contains a hub virtual network in the West US region.'
+    description: 'This configuration contains a hub virtual network in the ${location_hub} region.'
     connectivityTopology: 'HubAndSpoke'
     hubs: [
       {
         resourceType: 'Microsoft.Network/virtualNetworks'
-        resourceId: resourceId('Microsoft.Network/virtualNetworks', virtualNetworks_vnet_demo_westus_001_name)
+        resourceId: resourceId('Microsoft.Network/virtualNetworks', virtualNetworks_vnet_demo_001_name)
       }
     ]
     appliesToGroups: [
       {
-        networkGroupId: networkManagers_avnm_demo_westus_name_ng_eastus_001.id
+        networkGroupId: networkManagers_avnm_demo_name_ng_001_resource.id
         groupConnectivity: 'DirectlyConnected'
         useHubGateway: 'True'
         isGlobal: 'False'
@@ -133,36 +132,36 @@ resource networkManagers_avnm_demo_westus_name_con_hub_spoke_demo 'Microsoft.Net
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_ng_eastus_001_ANM_t2jvmu0x3y 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_ng_eastus_001
+resource networkManagers_avnm_demo_name_ng_001_ANM_t2jvmu0x3y 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_ng_001_resource
   name: 'ANM_t2jvmu0x3y'
   properties: {
-    resourceId: virtualNetworks_vnet_demo_eastus_002_name_resource.id
+    resourceId: virtualNetworks_vnet_spoke_demo_002_name_resource.id
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_ng_eastus_001_ANM_t2xwqquz7n 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_ng_eastus_001
+resource networkManagers_avnm_demo_name_ng_001_ANM_t2xwqquz7n 'Microsoft.Network/networkManagers/networkGroups/staticMembers@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_ng_001_resource
   name: 'ANM_t2xwqquz7n'
   properties: {
-    resourceId: virtualNetworks_vnet_demo_eastus_001_name_resource.id
+    resourceId: virtualNetworks_vnet_spoke_demo_001_name_resource.id
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_secconf_demo_rc_ngeastus001_demo 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_secconf_demo
-  name: 'rc-ngeastus001-demo'
+resource networkManagers_avnm_demo_name_secconf_demo_rc_001_demo 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_secconf_demo
+  name: 'rc-ng-${location_spoke}-001'
   properties: {
     appliesToGroups: [
       {
-        networkGroupId: networkManagers_avnm_demo_westus_name_ng_eastus_001.id
+        networkGroupId: networkManagers_avnm_demo_name_ng_001_resource.id
       }
     ]
   }
 }
 
-resource networkManagers_avnm_demo_westus_name_secconf_demo_rc_ngeastus001_demo_DENY_INTERNET 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections/rules@2022-05-01' = {
-  parent: networkManagers_avnm_demo_westus_name_secconf_demo_rc_ngeastus001_demo
+resource networkManagers_avnm_demo_name_secconf_demo_rc_01_demo_DENY_INTERNET 'Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections/rules@2022-05-01' = {
+  parent: networkManagers_avnm_demo_name_secconf_demo_rc_001_demo
   name: 'DENY_INTERNET'
   kind: 'Custom'
   properties: {
@@ -181,8 +180,8 @@ resource networkManagers_avnm_demo_westus_name_secconf_demo_rc_ngeastus001_demo_
   }
 }
 
-resource virtualNetworks_vnet_demo_eastus_001_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
-  name: virtualNetworks_vnet_demo_eastus_001_name
+resource virtualNetworks_vnet_spoke_demo_001_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
+  name: virtualNetworks_vnet_spoke_demo_001_name
   location: location_spoke
   properties: {
     addressSpace: {
@@ -206,8 +205,8 @@ resource virtualNetworks_vnet_demo_eastus_001_name_resource 'Microsoft.Network/v
   }
 }
 
-resource virtualNetworks_vnet_demo_eastus_002_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
-  name: virtualNetworks_vnet_demo_eastus_002_name
+resource virtualNetworks_vnet_spoke_demo_002_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
+  name: virtualNetworks_vnet_spoke_demo_002_name
   location: location_spoke
   properties: {
     addressSpace: {
@@ -231,8 +230,8 @@ resource virtualNetworks_vnet_demo_eastus_002_name_resource 'Microsoft.Network/v
   }
 }
 
-resource virtualNetworks_vnet_demo_westus_001_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
-  name: virtualNetworks_vnet_demo_westus_001_name
+resource virtualNetworks_vnet_demo_001_name_resource 'Microsoft.Network/virtualNetworks@2022-05-01' = {
+  name: virtualNetworks_vnet_demo_001_name
   location: location_hub
   properties: {
     addressSpace: {

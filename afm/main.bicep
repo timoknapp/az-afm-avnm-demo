@@ -1,18 +1,18 @@
 @description('Admin username for the servers')
-param adminUsername string
+param adminUsername string = 'adminuser'
 
 @description('Password for the admin account on the servers')
 @secure()
 param adminPassword string
 
 @description('Location for all resources.')
-param location string = 'eastus'
+param location string = resourceGroup().location
 
 @description('Size of the virtual machine.')
 param vmSize string = 'Standard_D2_v3'
 
 resource virtualWan 'Microsoft.Network/virtualWans@2021-08-01' = {
-  name: 'vwan-demo-eastus-001'
+  name: 'vwan-demo-${location}-001'
   location: location
   properties: {
     disableVpnEncryption: false
@@ -22,7 +22,7 @@ resource virtualWan 'Microsoft.Network/virtualWans@2021-08-01' = {
 }
 
 resource virtualHub 'Microsoft.Network/virtualHubs@2021-08-01' = {
-  name: 'rtserv-demo-eastus-001'
+  name: 'rtserv-demo-${location}-001'
   location: location
   properties: {
     addressPrefix: '10.1.0.0/16'
@@ -64,7 +64,7 @@ resource hubVNetconnection 'Microsoft.Network/virtualHubs/hubVirtualNetworkConne
 }
 
 resource policy 'Microsoft.Network/firewallPolicies@2021-08-01' = {
-  name: 'afwp-demo-eastus-001'
+  name: 'afwp-demo-${location}-001'
   location: location
   properties: {
     threatIntelMode: 'Alert'
@@ -73,7 +73,7 @@ resource policy 'Microsoft.Network/firewallPolicies@2021-08-01' = {
 
 resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2021-08-01' = {
   parent: policy
-  name: 'afwpg-demo-eastus-001'
+  name: 'afwpg-demo-${location}-001'
   properties: {
     priority: 300
     ruleCollections: [
@@ -112,7 +112,7 @@ resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionG
 }
 
 resource firewall 'Microsoft.Network/azureFirewalls@2021-08-01' = {
-  name: 'afw-demo-eastus-001'
+  name: 'afw-demo-${location}-001'
   location: location
   properties: {
     sku: {
@@ -134,7 +134,7 @@ resource firewall 'Microsoft.Network/azureFirewalls@2021-08-01' = {
 }
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
-  name: 'vnet-spoke-eastus-001'
+  name: 'vnet-spoke-${location}-001'
   location: location
   properties: {
     addressSpace: {
@@ -149,7 +149,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
 
 resource subnet_Workload_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
   parent: virtualNetwork
-  name: 'snet-workload-eastus-001'
+  name: 'snet-workload-${location}-001'
   properties: {
     addressPrefix: '10.0.1.0/24'
     privateEndpointNetworkPolicies: 'Enabled'
@@ -159,7 +159,7 @@ resource subnet_Workload_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-0
 
 resource subnet_Jump_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
   parent: virtualNetwork
-  name: 'snet-jump-eastus-001'
+  name: 'snet-jump-${location}-001'
   dependsOn: [
     subnet_Workload_SN
   ]
@@ -174,7 +174,7 @@ resource subnet_Jump_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' =
 }
 
 resource Jump_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
-  name: 'vmjumpeastus001'
+  name: 'vm-jump-${location}-001'
   location: location
   properties: {
     hardwareProfile: {
@@ -218,7 +218,7 @@ resource Jump_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
 }
 
 resource Workload_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
-  name: 'vmworkloadeastus001'
+  name: 'vm-workload-${location}-001'
   location: location
   properties: {
     hardwareProfile: {
@@ -262,7 +262,7 @@ resource Workload_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
 }
 
 resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vmworkloadeastus001-workload-001'
+  name: 'nic-01-vm-workload-${location}-001'
   location: location
   properties: {
     ipConfigurations: [
@@ -287,7 +287,7 @@ resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-
 }
 
 resource netInterface_jump_srv 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vmjumpeastus001-jump-001'
+  name: 'nic-01-vm-jump-${location}-001'
   location: location
   properties: {
     ipConfigurations: [
@@ -343,7 +343,7 @@ resource nsg_workload_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' =
 }
 
 resource publicIP_jump_srv 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
-  name: 'pip-vmjumpeastus001-jump-eastus-001'
+  name: 'pip-vm-jump-${location}-001'
   location: location
   sku: {
     name: 'Standard'
