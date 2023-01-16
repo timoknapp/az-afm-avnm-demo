@@ -264,3 +264,212 @@ resource virtualNetworks_vnet_demo_001_name_resource 'Microsoft.Network/virtualN
     enableDdosProtection: false
   }
 }
+
+resource subnet_spoke_001 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
+  parent: virtualNetworks_vnet_spoke_demo_001_name_resource
+  name: 'snet-spoke-001'
+  properties: {
+    addressPrefix: '10.4.1.0/24'
+    privateEndpointNetworkPolicies: 'Enabled'
+    privateLinkServiceNetworkPolicies: 'Enabled'
+  }
+}
+
+resource subnet_spoke_002 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
+  parent: virtualNetworks_vnet_spoke_demo_002_name_resource
+  name: 'snet-spoke-002'
+  properties: {
+    addressPrefix: '10.5.1.0/24'
+    privateEndpointNetworkPolicies: 'Enabled'
+    privateLinkServiceNetworkPolicies: 'Enabled'
+  }
+}
+
+resource publicIP_spoke_VM_001 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
+  name: 'pip-vm-spoke-001'
+  location: location_spoke
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAddressVersion: 'IPv4'
+    publicIPAllocationMethod: 'Static'
+    idleTimeoutInMinutes: 4
+  }
+}
+
+resource publicIP_spoke_VM_002 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
+  name: 'pip-vm-spoke-002'
+  location: location_spoke
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAddressVersion: 'IPv4'
+    publicIPAllocationMethod: 'Static'
+    idleTimeoutInMinutes: 4
+  }
+}
+
+
+resource netInterface_vm_spoke_001 'Microsoft.Network/networkInterfaces@2021-08-01' = {
+  name: 'nic-01-vm-spoke-${location_spoke}-001'
+  location: location_spoke
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          subnet: {
+            id: subnet_spoke_001.id
+          }
+          primary: true
+          privateIPAddressVersion: 'IPv4'
+        }
+      }
+    ]
+    enableAcceleratedNetworking: false
+    enableIPForwarding: false
+    networkSecurityGroup: {
+      id: nsg_spoke_001.id
+    }
+  }
+}
+
+
+
+resource netInterface_vm_spoke_002 'Microsoft.Network/networkInterfaces@2021-08-01' = {
+  name: 'nic-01-vm-spoke-${location_spoke}-002'
+  location: location_spoke
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          subnet: {
+            id: subnet_spoke_002.id
+          }
+          primary: true
+          privateIPAddressVersion: 'IPv4'
+        }
+      }
+    ]
+    enableAcceleratedNetworking: false
+    enableIPForwarding: false
+    networkSecurityGroup: {
+      id: nsg_spoke_002.id
+    }
+  }
+}
+
+resource nsg_spoke_001 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-spoke-001'
+  location: location_spoke
+  properties: {}
+}
+
+resource nsg_spoke_002 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-workload-srv'
+  location: location_spoke
+  properties: {}
+}
+
+@description('Admin username for the servers')
+param adminUsername string = 'adminuser'
+
+@description('Password for the admin account on the servers')
+@secure()
+param adminPassword string
+
+@description('Size of the virtual machine.')
+param vmSize string = 'Standard_D2_v3'
+
+resource VM_Spoke_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+  name: 'vm-spoke-${location_spoke}-001'
+  location: location_spoke
+  properties: {
+    hardwareProfile: {
+      vmSize: vmSize
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2019-Datacenter'
+        version: 'latest'
+      }
+      osDisk: {
+        osType: 'Windows'
+        createOption: 'FromImage'
+        caching: 'ReadWrite'
+        managedDisk: {
+          storageAccountType: 'StandardSSD_LRS'
+        }
+        diskSizeGB: 127
+      }
+    }
+    osProfile: {
+      computerName: 'vmworkload'
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+      windowsConfiguration: {
+        provisionVMAgent: true
+        enableAutomaticUpdates: true
+      }
+      allowExtensionOperations: true
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: netInterface_vm_spoke_001.id
+        }
+      ]
+    }
+  }
+}
+
+resource VM_Spoke_002 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+  name: 'vm-spoke-${location_spoke}-002'
+  location: location_spoke
+  properties: {
+    hardwareProfile: {
+      vmSize: vmSize
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2019-Datacenter'
+        version: 'latest'
+      }
+      osDisk: {
+        osType: 'Windows'
+        createOption: 'FromImage'
+        caching: 'ReadWrite'
+        managedDisk: {
+          storageAccountType: 'StandardSSD_LRS'
+        }
+        diskSizeGB: 127
+      }
+    }
+    osProfile: {
+      computerName: 'vmworkload'
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+      windowsConfiguration: {
+        provisionVMAgent: true
+        enableAutomaticUpdates: true
+      }
+      allowExtensionOperations: true
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: netInterface_vm_spoke_002.id
+        }
+      ]
+    }
+  }
+}
