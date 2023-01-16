@@ -157,66 +157,6 @@ resource subnet_Workload_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-0
   }
 }
 
-resource subnet_Jump_SN 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
-  parent: virtualNetwork
-  name: 'snet-jump-${location}-001'
-  dependsOn: [
-    subnet_Workload_SN
-  ]
-  properties: {
-    addressPrefix: '10.0.2.0/24'
-    routeTable: {
-      id: routeTable.id
-    }
-    privateEndpointNetworkPolicies: 'Enabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-}
-
-resource Jump_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
-  name: 'vm-jump-${location}-001'
-  location: location
-  properties: {
-    hardwareProfile: {
-      vmSize: vmSize
-    }
-    storageProfile: {
-      imageReference: {
-        publisher: 'MicrosoftWindowsServer'
-        offer: 'WindowsServer'
-        sku: '2019-Datacenter'
-        version: 'latest'
-      }
-      osDisk: {
-        osType: 'Windows'
-        createOption: 'FromImage'
-        caching: 'ReadWrite'
-        managedDisk: {
-          storageAccountType: 'StandardSSD_LRS'
-        }
-        diskSizeGB: 127
-      }
-    }
-    osProfile: {
-      computerName: 'vmjump'
-      adminUsername: adminUsername
-      adminPassword: adminPassword
-      windowsConfiguration: {
-        provisionVMAgent: true
-        enableAutomaticUpdates: true
-      }
-      allowExtensionOperations: true
-    }
-    networkProfile: {
-      networkInterfaces: [
-        {
-          id: netInterface_jump_srv.id
-        }
-      ]
-    }
-  }
-}
-
 resource Workload_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   name: 'vm-workload-${location}-001'
   location: location
@@ -270,6 +210,9 @@ resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: publicIP_workload_srv.id
+          }
           subnet: {
             id: subnet_Workload_SN.id
           }
@@ -286,36 +229,8 @@ resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-
   }
 }
 
-resource netInterface_jump_srv 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vm-jump-${location}-001'
-  location: location
-  properties: {
-    ipConfigurations: [
-      {
-        name: 'ipconfig1'
-        properties: {
-          privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIP_jump_srv.id
-          }
-          subnet: {
-            id: subnet_Jump_SN.id
-          }
-          primary: true
-          privateIPAddressVersion: 'IPv4'
-        }
-      }
-    ]
-    enableAcceleratedNetworking: false
-    enableIPForwarding: false
-    networkSecurityGroup: {
-      id: nsg_jump_srv.id
-    }
-  }
-}
-
-resource nsg_jump_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
-  name: 'nsg-jump-srv'
+resource nsg_workload_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-workload-srv'
   location: location
   properties: {
     securityRules: [
@@ -336,14 +251,8 @@ resource nsg_jump_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
   }
 }
 
-resource nsg_workload_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
-  name: 'nsg-workload-srv'
-  location: location
-  properties: {}
-}
-
-resource publicIP_jump_srv 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
-  name: 'pip-vm-jump-${location}-001'
+resource publicIP_workload_srv 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
+  name: 'pip-vm-workload-${location}-001'
   location: location
   sku: {
     name: 'Standard'
