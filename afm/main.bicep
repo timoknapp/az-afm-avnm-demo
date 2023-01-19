@@ -80,7 +80,7 @@ resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionG
       {
         ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
         name: 'RC-01'
-        priority: 100
+        priority: 200
         action: {
           type: 'Allow'
         }
@@ -104,6 +104,33 @@ resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionG
             targetFqdns: [
               '*.microsoft.com'
             ]
+          }
+        ]
+      },{
+        ruleCollectionType: 'FirewallPolicyNatRuleCollection'
+        name: 'RC-02'
+        priority: 100
+        action: {
+          type: 'Dnat'
+        }
+        rules:[
+          {
+            ruleType: 'NatRule'
+            name: 'Allow-rdp'
+            destinationAddresses: [
+              firewall.properties.hubIPAddresses.publicIPs.addresses[0].address
+            ]
+            destinationPorts: [
+              '3389'
+            ]
+            ipProtocols: [
+              'TCP'
+            ]
+            sourceAddresses: [
+              '*'
+            ]
+            translatedAddress: netInterface_workload_srv.properties.ipConfigurations[0].properties.privateIPAddress
+            translatedPort: '3389'
           }
         ]
       }
@@ -210,9 +237,6 @@ resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIP_workload_srv.id
-          }
           subnet: {
             id: subnet_Workload_SN.id
           }
@@ -245,36 +269,6 @@ resource nsg_workload_srv 'Microsoft.Network/networkSecurityGroups@2021-08-01' =
           access: 'Allow'
           priority: 300
           direction: 'Inbound'
-        }
-      }
-    ]
-  }
-}
-
-resource publicIP_workload_srv 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
-  name: 'pip-vm-workload-${location}-001'
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAddressVersion: 'IPv4'
-    publicIPAllocationMethod: 'Static'
-    idleTimeoutInMinutes: 4
-  }
-}
-
-resource routeTable 'Microsoft.Network/routeTables@2021-08-01' = {
-  name: 'route-jumptoinet'
-  location: location
-  properties: {
-    disableBgpRoutePropagation: false
-    routes: [
-      {
-        name: 'jump-to-inet'
-        properties: {
-          addressPrefix: '0.0.0.0/0'
-          nextHopType: 'Internet'
         }
       }
     ]
