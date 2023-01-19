@@ -1,12 +1,12 @@
-param location_hub string = resourceGroup().location
+param location_hub string = 'westeurope'
 param location_spoke string = 'northeurope'
 
-param networkManagers_avnm_demo_name string = 'avnm-demo-${location_hub}'
-param virtualNetworks_vnet_demo_001_name string = 'vnet-hub-demo-${location_hub}-001'
-param virtualNetworkGateways_vgw_demo_001_name string = 'vgw-demo-${location_hub}-001'
-param publicIPAddresses_pip_vgw_demo_001_name string = 'pip-vgwdemo-${location_hub}-001'
-param virtualNetworks_vnet_spoke_demo_001_name string = 'vnet-spoke-demo-${location_spoke}-001'
-param virtualNetworks_vnet_spoke_demo_002_name string = 'vnet-spoke-demo-${location_spoke}-002'
+param networkManagers_avnm_demo_name string = 'avnm-demo-westeurope'
+param virtualNetworks_vnet_demo_001_name string = 'vnet-hub-demo-westeurope-001'
+param virtualNetworkGateways_vgw_demo_001_name string = 'vgw-demo-westeurope-001'
+param publicIPAddresses_pip_vgw_demo_001_name string = 'pip-vgwdemo-westeurope-001'
+param virtualNetworks_vnet_spoke_demo_001_name string = 'vnet-spoke-demo-northeurope-001'
+param virtualNetworks_vnet_spoke_demo_002_name string = 'vnet-spoke-demo-northeurope-002'
 
 param subscriptionId string = subscription().id
 
@@ -191,7 +191,7 @@ resource virtualNetworks_vnet_spoke_demo_001_name_resource 'Microsoft.Network/vi
     }
     subnets: [
       {
-        name: 'default'
+        name: 'snet-spoke-001'
         properties: {
           addressPrefix: '10.4.0.0/24'
           delegations: []
@@ -216,7 +216,7 @@ resource virtualNetworks_vnet_spoke_demo_002_name_resource 'Microsoft.Network/vi
     }
     subnets: [
       {
-        name: 'default'
+        name: 'snet-spoke-002'
         properties: {
           addressPrefix: '10.5.0.0/24'
           delegations: []
@@ -265,26 +265,6 @@ resource virtualNetworks_vnet_demo_001_name_resource 'Microsoft.Network/virtualN
   }
 }
 
-resource subnet_spoke_001 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
-  parent: virtualNetworks_vnet_spoke_demo_001_name_resource
-  name: 'snet-spoke-001'
-  properties: {
-    addressPrefix: '10.4.1.0/24'
-    privateEndpointNetworkPolicies: 'Enabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-}
-
-resource subnet_spoke_002 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
-  parent: virtualNetworks_vnet_spoke_demo_002_name_resource
-  name: 'snet-spoke-002'
-  properties: {
-    addressPrefix: '10.5.1.0/24'
-    privateEndpointNetworkPolicies: 'Enabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-}
-
 resource publicIP_spoke_VM_001 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
   name: 'pip-vm-spoke-001'
   location: location_spoke
@@ -322,7 +302,7 @@ resource netInterface_vm_spoke_001 'Microsoft.Network/networkInterfaces@2021-08-
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: subnet_spoke_001.id
+            id: virtualNetworks_vnet_spoke_demo_001_name_resource.properties.subnets[0].id
           }
           primary: true
           privateIPAddressVersion: 'IPv4'
@@ -349,7 +329,7 @@ resource netInterface_vm_spoke_002 'Microsoft.Network/networkInterfaces@2021-08-
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: subnet_spoke_002.id
+            id: virtualNetworks_vnet_spoke_demo_002_name_resource.properties.subnets[0].id
           }
           primary: true
           privateIPAddressVersion: 'IPv4'
