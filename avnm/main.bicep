@@ -259,38 +259,64 @@ resource virtualNetworks_vnet_demo_001_name_resource 'Microsoft.Network/virtualN
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
         type: 'Microsoft.Network/virtualNetworks/subnets'
+      },{
+        name: 'AzureBastionSubnet'
+        properties: {
+          addressPrefix: '10.3.2.0/24'
+          delegations: []
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+        }
+        type: 'Microsoft.Network/virtualNetworks/subnets'
       }
     ]
     enableDdosProtection: false
   }
 }
 
-resource publicIP_spoke_VM_001 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
-  name: 'pip-vm-spoke-001'
-  location: location_spoke
+resource publicIpBastion 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
+  name: 'pip-bas-${location_hub}-001'
+  location: location_hub
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    publicIPAddressVersion: 'IPv4'
+  }
   sku: {
     name: 'Standard'
   }
-  properties: {
-    publicIPAddressVersion: 'IPv4'
-    publicIPAllocationMethod: 'Static'
-    idleTimeoutInMinutes: 4
-  }
 }
 
-resource publicIP_spoke_VM_002 'Microsoft.Network/publicIPAddresses@2021-08-01' = {
-  name: 'pip-vm-spoke-002'
-  location: location_spoke
+resource bastion 'Microsoft.Network/bastionHosts@2022-07-01' = {
+  name: 'bas-hub-${location_hub}-001'
+  location: location_hub
+  properties: {
+    disableCopyPaste: false
+    enableFileCopy: true
+    enableIpConnect: true
+    enableShareableLink: true
+    enableTunneling: true
+    ipConfigurations: [
+      {
+        name: 'IpConf'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: publicIpBastion.id
+          }
+          subnet: {
+            id: virtualNetworks_vnet_demo_001_name_resource.properties.subnets[2].id
+          }
+        }
+      }
+    ]
+
+
+
+  }
   sku: {
     name: 'Standard'
   }
-  properties: {
-    publicIPAddressVersion: 'IPv4'
-    publicIPAllocationMethod: 'Static'
-    idleTimeoutInMinutes: 4
-  }
 }
-
 
 resource netInterface_vm_spoke_001 'Microsoft.Network/networkInterfaces@2021-08-01' = {
   name: 'nic-01-vm-spoke-${location_spoke}-001'
@@ -319,9 +345,9 @@ resource netInterface_vm_spoke_001 'Microsoft.Network/networkInterfaces@2021-08-
 
 
 
-resource netInterface_vm_spoke_002 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vm-spoke-${location_spoke}-002'
-  location: location_spoke
+resource netInterface_vm_hub_001 'Microsoft.Network/networkInterfaces@2021-08-01' = {
+  name: 'nic-vm-hub-${location_hub}-002'
+  location: location_hub
   properties: {
     ipConfigurations: [
       {
@@ -329,7 +355,7 @@ resource netInterface_vm_spoke_002 'Microsoft.Network/networkInterfaces@2021-08-
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: virtualNetworks_vnet_spoke_demo_002_name_resource.properties.subnets[0].id
+            id: virtualNetworks_vnet_demo_001_name_resource.properties.subnets[0].id
           }
           primary: true
           privateIPAddressVersion: 'IPv4'
@@ -339,7 +365,7 @@ resource netInterface_vm_spoke_002 'Microsoft.Network/networkInterfaces@2021-08-
     enableAcceleratedNetworking: false
     enableIPForwarding: false
     networkSecurityGroup: {
-      id: nsg_spoke_002.id
+      id: nsg_hub_001.id
     }
   }
 }
@@ -350,14 +376,14 @@ resource nsg_spoke_001 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
   properties: {}
 }
 
-resource nsg_spoke_002 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
-  name: 'nsg-workload-srv'
-  location: location_spoke
+resource nsg_hub_001 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
+  name: 'nsg-hub-001'
+  location: location_hub
   properties: {}
 }
 
 @description('Admin username for the servers')
-param adminUsername string = 'adminuser'
+param adminUsername string = 'adminUser'
 
 @description('Password for the admin account on the servers')
 @secure()
@@ -410,9 +436,9 @@ resource VM_Spoke_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   }
 }
 
-resource VM_Spoke_002 'Microsoft.Compute/virtualMachines@2022-03-01' = {
-  name: 'vm-spoke-${location_spoke}-002'
-  location: location_spoke
+resource VM_Hub_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+  name: 'vm-hub-${location_hub}-001'
+  location: location_hub
   properties: {
     hardwareProfile: {
       vmSize: vmSize
@@ -447,7 +473,7 @@ resource VM_Spoke_002 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     networkProfile: {
       networkInterfaces: [
         {
-          id: netInterface_vm_spoke_002.id
+          id: netInterface_vm_hub_001.id
         }
       ]
     }
