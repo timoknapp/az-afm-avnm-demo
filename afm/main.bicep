@@ -63,11 +63,52 @@ resource hubVNetconnection 'Microsoft.Network/virtualHubs/hubVirtualNetworkConne
   }
 }
 
-resource policy 'Microsoft.Network/firewallPolicies@2021-08-01' = {
+resource logAnalyticsWorkspaceFirewall 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: 'log-firewall-${location}-001'
+  location: location
+}
+
+resource policy 'Microsoft.Network/firewallPolicies@2022-07-01' = {
   name: 'afwp-demo-${location}-001'
   location: location
   properties: {
     threatIntelMode: 'Alert'
+    insights: {
+      isEnabled: true
+      logAnalyticsResources: {
+        defaultWorkspaceId: {
+          id: logAnalyticsWorkspaceFirewall.id
+        }
+        workspaces: [
+          {
+            workspaceId: {
+              id: logAnalyticsWorkspaceFirewall.id
+            }
+            region: location
+          }
+        ]
+      }
+      retentionDays: 14
+    }
+  }
+}
+
+resource diagnosticSettingsFirewall 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-firewall-${location}-001'
+  scope: firewall
+  properties: {
+    logAnalyticsDestinationType: 'AzureDiagnostics'
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+        retentionPolicy: {
+          days: 14
+          enabled: true
+        }
+      }
+    ]
+    workspaceId: logAnalyticsWorkspaceFirewall.id
   }
 }
 
@@ -138,7 +179,7 @@ resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionG
   }
 }
 
-resource firewall 'Microsoft.Network/azureFirewalls@2021-08-01' = {
+resource firewall 'Microsoft.Network/azureFirewalls@2022-07-01' = {
   name: 'afw-demo-${location}-001'
   location: location
   properties: {
