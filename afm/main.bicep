@@ -270,7 +270,7 @@ resource Workload_Srv 'Microsoft.Compute/virtualMachines@2022-03-01' = {
 }
 
 resource netInterface_workload_srv 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vm-workload-${location}-001'
+  name: 'nic-vm-workload-${location}-001'
   location: location
   properties: {
     ipConfigurations: [
