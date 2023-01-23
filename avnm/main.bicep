@@ -319,7 +319,7 @@ resource bastion 'Microsoft.Network/bastionHosts@2022-07-01' = {
 }
 
 resource netInterface_vm_spoke_001 'Microsoft.Network/networkInterfaces@2021-08-01' = {
-  name: 'nic-01-vm-spoke-${location_spoke}-001'
+  name: 'nic-vm-spoke-${location_spoke}-001'
   location: location_spoke
   properties: {
     ipConfigurations: [
