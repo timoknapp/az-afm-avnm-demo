@@ -21,7 +21,7 @@ az group create --name rg-avnm-demo-001 --location westeurope
 ### Deploy
 
 ```
-az deployment group create -n az-avnm-demo --resource-group rg-avnm-demo-001 --template-file main.bicep
+az deployment group create -n az-avnm-demo --resource-group rg-avnm-demo-001 --template-file main.bicep --parameters adminPassword=AdminPassword123!
 ```
 
 ### Cleanup Resource Group
