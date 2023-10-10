@@ -8,6 +8,16 @@ param publicIPAddresses_pip_vgw_demo_001_name string = 'pip-vgwdemo-westeurope-0
 param virtualNetworks_vnet_spoke_demo_001_name string = 'vnet-spoke-demo-northeurope-001'
 param virtualNetworks_vnet_spoke_demo_002_name string = 'vnet-spoke-demo-northeurope-002'
 
+@description('Admin username for the servers')
+param adminUsername string = 'adminUser'
+
+@description('Password for the admin account on the servers')
+@secure()
+param adminPassword string
+
+@description('Size of the virtual machine.')
+param vmSize string = 'Standard_D2_v3'
+
 param subscriptionId string = subscription().id
 
 resource networkManagers_avnm_demo_name_resource 'Microsoft.Network/networkManagers@2022-05-01' = {
@@ -382,15 +392,6 @@ resource nsg_hub_001 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {
   properties: {}
 }
 
-@description('Admin username for the servers')
-param adminUsername string = 'adminUser'
-
-@description('Password for the admin account on the servers')
-@secure()
-param adminPassword string
-
-@description('Size of the virtual machine.')
-param vmSize string = 'Standard_D2_v3'
 
 resource VM_Spoke_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   name: 'vm-spoke-${location_spoke}-001'
